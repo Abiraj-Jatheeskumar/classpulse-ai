@@ -29,7 +29,7 @@ export interface RegisterResponse {
   user: User;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 export const authService = {
   // Register a new user
