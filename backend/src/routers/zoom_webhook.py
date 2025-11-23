@@ -6,6 +6,7 @@ from src.database.connection import get_database
 
 router = APIRouter(prefix="/api/zoom", tags=["Zoom Webhook"])
 
+
 # -------------------------------------------------------------
 # Compute Zoom signature
 # -------------------------------------------------------------
@@ -14,11 +15,12 @@ def compute_signature(secret: str, timestamp: str, body: bytes):
     hash_ = hmac.new(secret.encode(), message.encode(), hashlib.sha256).hexdigest()
     return f"v0={hash_}"
 
+
 # -------------------------------------------------------------
-# MAIN WEBHOOK ENDPOINT
+# AWS → Railway Webhook Endpoint (FINAL)
 # -------------------------------------------------------------
-@router.post("/webhook")
-async def zoom_webhook(
+@router.post("/events")
+async def zoom_events(
     request: Request,
     zoom_signature: str = Header(None, alias="x-zoom-signature"),
     zoom_timestamp: str = Header(None, alias="x-zoom-request-timestamp")
@@ -58,7 +60,7 @@ async def zoom_webhook(
         }
 
     # =====================================================
-    # 2) VALIDATE SIGNATURE (mandatory for real events)
+    # 2) SIGNATURE VALIDATION (real events only)
     # =====================================================
     if zoom_signature and zoom_timestamp:
         secret = os.getenv("ZOOM_WEBHOOK_SECRET", "")
@@ -69,10 +71,10 @@ async def zoom_webhook(
             raise HTTPException(status_code=401, detail="Invalid signature")
         print("✅ Signature verified successfully")
     else:
-        print("⚠️ No signature provided (Zoom URL validation?)")
+        print("⚠️ No signature (this happens during validation)")
 
     # =====================================================
-    # 3) MEETING PARTICIPANT JOIN / LEAVE
+    # 3) DB LOGIC - JOIN / LEAVE
     # =====================================================
     obj = data.get("payload", {}).get("object", {})
     participant = obj.get("participant", {})
@@ -103,10 +105,11 @@ async def zoom_webhook(
         print("✔ LEAVE UPDATED")
         return {"status": "ok", "event": "participant_left"}
 
-    # OTHER EVENTS
     return {"status": "ignored", "event": event}
 
 
-@router.get("/webhook/test")
+
+# Test endpoint (optional)
+@router.get("/events/test")
 async def webhook_test():
     return {"status": "ok", "message": "webhook active"}
