@@ -6,18 +6,12 @@ from src.database.connection import get_database
 router = APIRouter(prefix="/api/zoom", tags=["Zoom Webhook"])
 
 
-# -------------------------------------------------------------
-# Compute Zoom signature (Zoom V0 signing method)
-# -------------------------------------------------------------
 def compute_signature(secret: str, timestamp: str, body: bytes):
     message = f"v0:{timestamp}:{body.decode()}"
     hash_ = hmac.new(secret.encode(), message.encode(), hashlib.sha256).hexdigest()
     return f"v0={hash_}"
 
 
-# -------------------------------------------------------------
-# MAIN ZOOM WEBHOOK ENDPOINT
-# -------------------------------------------------------------
 @router.post("/events")
 async def zoom_events(
     request: Request,
@@ -26,140 +20,104 @@ async def zoom_events(
 ):
 
     raw = await request.body()
-
-    # Parse incoming JSON
-    try:
-        data = json.loads(raw.decode())
-    except:
-        raise HTTPException(status_code=400, detail="Invalid JSON received")
+    data = json.loads(raw.decode())
 
     event = data.get("event")
-    print("\n==============================")
-    print("ZOOM WEBHOOK RECEIVED:", event)
-    print("==============================")
-    print(raw.decode(), "\n")
-
-    # ---------------------------------------------------------
-    # 1. URL VALIDATION EVENT
-    # ---------------------------------------------------------
-    if event == "endpoint.url_validation":
-        print("Handling Zoom URL validation...")
-
-        plain = data["payload"]["plainToken"]
-        secret = os.getenv("ZOOM_WEBHOOK_SECRET", "")
-
-        if not secret:
-            raise HTTPException(status_code=500, detail="ZOOM_WEBHOOK_SECRET missing")
-
-        hashed = hmac.new(secret.encode(), plain.encode(), hashlib.sha256).digest()
-        encrypted = base64.b64encode(hashed).decode()
-
-        return {
-            "plainToken": plain,
-            "encryptedToken": encrypted
-        }
-
-    # ---------------------------------------------------------
-    # 2. SIGNATURE VALIDATION (Required for real events)
-    # ---------------------------------------------------------
-    if zoom_signature and zoom_timestamp:
-        secret = os.getenv("ZOOM_WEBHOOK_SECRET", "")
-        expected = compute_signature(secret, zoom_timestamp, raw)
-
-        if not hmac.compare_digest(expected, zoom_signature):
-            print("❌ INVALID SIGNATURE!")
-            raise HTTPException(status_code=401, detail="Invalid signature")
-
-        print("✅ Signature verified")
-    else:
-        print("⚠️ No signature (this is normal during URL validation)")
-
-    # ---------------------------------------------------------
-    # 3. FETCH DATABASE + OBJECT DATA
-    # ---------------------------------------------------------
-    db = get_database()
-    print("👉 USING DATABASE:", db.name)
-
-    obj = data.get("payload", {}).get("object", {})
+    payload = data.get("payload", {})
+    obj = payload.get("object", {})
     participant = obj.get("participant", {})
 
+    db = get_database()
 
-    # =========================================================
-    # PARTICIPANT JOINED
-    # =========================================================
+    # URL VALIDATION
+    if event == "endpoint.url_validation":
+        plain = payload["plainToken"]
+        secret = os.getenv("ZOOM_WEBHOOK_SECRET", "")
+        hashed = hmac.new(secret.encode(), plain.encode(), hashlib.sha256).digest()
+        encrypted = base64.b64encode(hashed).decode()
+        return {"plainToken": plain, "encryptedToken": encrypted}
+
+    # SIGNATURE VALIDATION
+    if zoom_signature:
+        secret = os.getenv("ZOOM_WEBHOOK_SECRET", "")
+        expected = compute_signature(secret, zoom_timestamp, raw)
+        if not hmac.compare_digest(expected, zoom_signature):
+            raise HTTPException(status_code=401, detail="Invalid signature")
+
+    # COMMON MAPPED FIELDS (base document)
+    base_doc = {
+        "zoom_meeting_id": obj.get("id"),
+        "meeting_topic": obj.get("topic"),
+        "meeting_uuid": obj.get("uuid"),
+
+        "user_id": participant.get("user_id") or participant.get("id"),
+        "user_name": participant.get("user_name") or participant.get("name"),
+        "email": participant.get("email"),
+
+        "participant_user_id": participant.get("participant_user_id"),
+        "participant_uuid": participant.get("participant_uuid"),
+
+        "public_ip": participant.get("ip_address"),
+        "private_ip": participant.get("private_ip_address"),
+
+        "raw_participant_data": participant,  # Store everything
+
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+
+    # -----------------------------
+    #  EVENT: PARTICIPANT JOINED
+    # -----------------------------
     if event == "meeting.participant_joined":
-        doc = {
-            "event": "joined",
-            "meeting_id": obj.get("id"),
-            "meeting_uuid": obj.get("uuid"),
-            "topic": obj.get("topic"),
 
-            "user_id": participant.get("user_id") or participant.get("id"),
-            "name": participant.get("user_name") or participant.get("name"),
-            "email": participant.get("email"),
+        doc = {
+            **base_doc,
+            "status": "joined",
             "join_time": participant.get("join_time"),
-
-            "timestamp": datetime.utcnow()
+            "event": "joined"
         }
 
-        await db.zoom_participants.insert_one(doc)
-        print("✔ JOIN STORED:", doc)
+        await db.participation.insert_one(doc)
+        print("✔ JOIN DATA STORED:", doc)
+        return {"status": "ok", "event": "joined"}
 
-        return {"status": "ok", "event": "participant_joined"}
 
-
-    # =========================================================
-    # PARTICIPANT LEFT
-    # =========================================================
+    # -----------------------------
+    #  EVENT: PARTICIPANT LEFT
+    # -----------------------------
     if event == "meeting.participant_left":
+
         doc = {
-            "event": "left",
-            "meeting_id": obj.get("id"),
-            "meeting_uuid": obj.get("uuid"),
-            "topic": obj.get("topic"),
-
-            "user_id": participant.get("user_id") or participant.get("id"),
-            "name": participant.get("user_name") or participant.get("name"),
-            "email": participant.get("email"),
+            **base_doc,
+            "status": "left",
             "leave_time": participant.get("leave_time"),
-
-            "timestamp": datetime.utcnow()
+            "leave_reason": participant.get("leave_reason"),
+            "event": "left"
         }
 
-        await db.zoom_participants.insert_one(doc)
-        print("✔ LEAVE STORED:", doc)
+        await db.participation.insert_one(doc)
+        print("✔ LEAVE DATA STORED:", doc)
+        return {"status": "ok", "event": "left"}
 
-        return {"status": "ok", "event": "participant_left"}
 
-
-    # =========================================================
-    # MEETING ENDED
-    # =========================================================
+    # -----------------------------
+    #  EVENT: MEETING ENDED
+    # -----------------------------
     if event == "meeting.ended":
+
         doc = {
-            "event": "meeting_ended",
-            "meeting_id": obj.get("id"),
+            "zoom_meeting_id": obj.get("id"),
+            "meeting_topic": obj.get("topic"),
             "meeting_uuid": obj.get("uuid"),
-            "topic": obj.get("topic"),
             "duration": obj.get("duration"),
             "timezone": obj.get("timezone"),
-            "timestamp": datetime.utcnow()
+            "event": "meeting_ended",
+            "created_at": datetime.utcnow(),
         }
 
-        await db.zoom_meetings.insert_one(doc)
+        await db.participation.insert_one(doc)
         print("✔ MEETING ENDED STORED:", doc)
-
         return {"status": "ok", "event": "meeting_ended"}
 
-
-    # Unknown events — ignore
     return {"status": "ignored", "event": event}
-
-
-
-# -------------------------------------------------------------
-# TEST ENDPOINT (OPTIONAL)
-# -------------------------------------------------------------
-@router.get("/events/test")
-async def webhook_test():
-    return {"status": "ok", "message": "zoom webhook active"}
