@@ -58,7 +58,7 @@ export const ContactUs = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
-                <p className="font-medium text-gray-900 dark:text-white">techsnatchers@gmail.com</p>
+                <p className="font-medium text-gray-900 dark:text-white">abiraj30@gmail.com</p>
               </div>
             </div>
 
@@ -68,7 +68,7 @@ export const ContactUs = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Phone</p>
-                <p className="font-medium text-gray-900 dark:text-white">+94 77 123 4567</p>
+                <p className="font-medium text-gray-900 dark:text-white">076 921 300</p>
               </div>
             </div>
 

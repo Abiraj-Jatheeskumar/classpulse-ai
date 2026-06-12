@@ -177,7 +177,7 @@ const PrivacyPolicyModal = ({ open, onClose }: { open: boolean; onClose: () => v
         <div className="px-6 py-5 overflow-y-auto max-h-[calc(85vh-64px)] text-sm text-gray-700 dark:text-gray-300 space-y-4 leading-relaxed">
           <p className="text-xs text-gray-500 dark:text-gray-400">Last updated: February 2026</p>
 
-          <p>ClassPulse by TechSnatchers ("we", "us", or "our") is committed to protecting your privacy. This policy explains how we collect, use, and safeguard your information when you use the ClassPulse platform.</p>
+          <p>ClassPulse ("we", "us", or "our") is committed to protecting your privacy. This policy explains how we collect, use, and safeguard your information when you use the ClassPulse platform.</p>
 
           <h3 className="font-semibold text-gray-900 dark:text-white text-base">1. Information We Collect</h3>
           <ul className="list-disc list-inside space-y-1 pl-2">
@@ -219,7 +219,7 @@ const PrivacyPolicyModal = ({ open, onClose }: { open: boolean; onClose: () => v
           </ul>
 
           <h3 className="font-semibold text-gray-900 dark:text-white text-base">6. Contact</h3>
-          <p>For privacy-related questions, contact us at <a href="mailto:techsnatchers@gmail.com" className="text-blue-500 hover:underline">techsnatchers@gmail.com</a> or via the <Link to="/dashboard/contact" className="text-blue-500 hover:underline" onClick={onClose}>Contact Us</Link> page.</p>
+          <p>For privacy-related questions, contact us at <a href="mailto:abiraj30@gmail.com" className="text-blue-500 hover:underline">abiraj30@gmail.com</a> or via the <Link to="/dashboard/contact" className="text-blue-500 hover:underline" onClick={onClose}>Contact Us</Link> page.</p>
         </div>
       </div>
     </div>
@@ -262,7 +262,7 @@ const CookiePolicyModal = ({ open, onClose }: { open: boolean; onClose: () => vo
           <p>You can clear cookies and local storage through your browser settings. Note that clearing authentication data will require you to log in again.</p>
 
           <h3 className="font-semibold text-gray-900 dark:text-white text-base">5. Contact</h3>
-          <p>Questions about our cookie usage? Reach out at <a href="mailto:techsnatchers@gmail.com" className="text-blue-500 hover:underline">techsnatchers@gmail.com</a>.</p>
+          <p>Questions about our cookie usage? Reach out at <a href="mailto:abiraj30@gmail.com" className="text-blue-500 hover:underline">abiraj30@gmail.com</a>.</p>
         </div>
       </div>
     </div>
@@ -284,17 +284,17 @@ export const Footer = () => {
             {/* Phone */}
             <div className="flex flex-col items-center gap-2">
               <PhoneIcon className="h-6 w-6" />
-              <span className="font-semibold">+94 77 123 4567</span>
+              <span className="font-semibold">076 921 300</span>
             </div>
             {/* Address */}
             <div className="flex flex-col items-center gap-2 border-x-0 md:border-x border-white/30">
               <MapPinIcon className="h-6 w-6" />
-              <span className="font-semibold">Mihintale, Sri Lanka</span>
+              <span className="font-semibold">Jaffna, Sri Lanka</span>
             </div>
             {/* Email */}
             <div className="flex flex-col items-center gap-2">
               <MailIcon className="h-6 w-6" />
-              <span className="font-semibold">techsnatchers@gmail.com</span>
+              <span className="font-semibold">abiraj30@gmail.com</span>
             </div>
           </div>
         </div>
@@ -312,7 +312,7 @@ export const Footer = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-white">ClassPulse</h3>
-                  <p className="text-xs text-blue-300">by TechSnatchers</p>
+                  <p className="text-xs text-blue-300">by Abiraj Vithusan Shoumiya</p>
                 </div>
               </div>
               <p className="text-blue-200/70 text-sm mb-4">
