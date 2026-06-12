@@ -238,6 +238,7 @@ async def create_session(
         return _session_doc_to_out(saved)
 
     except ZoomServiceError as ze:
+        print("❌ ZOOM ERROR while creating session:", str(ze))
         raise HTTPException(status_code=400, detail=str(ze))
     except HTTPException:
         raise

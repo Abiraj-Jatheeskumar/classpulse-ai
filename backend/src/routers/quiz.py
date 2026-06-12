@@ -110,7 +110,7 @@ async def _push_feedback_update(session_id: str, student_id: str):
             # Try alternate session IDs (Zoom ↔ MongoDB)
             from ..database.connection import get_database
             db = get_database()
-            if db:
+            if db is not None:
                 alt_ids = []
                 try:
                     from bson import ObjectId

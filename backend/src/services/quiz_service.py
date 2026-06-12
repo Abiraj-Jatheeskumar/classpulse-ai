@@ -308,7 +308,7 @@ class QuizService:
             if not sent:
                 from ..database.connection import get_database
                 db = get_database()
-                if db:
+                if db is not None:
                     alt_ids = []
                     try:
                         from bson import ObjectId

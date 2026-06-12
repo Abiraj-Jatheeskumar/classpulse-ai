@@ -390,7 +390,7 @@ async def trigger_quiz_to_session(session_id: str, request: Request):
         # ── 1. Resolve session IDs ──────────────────────────────────
         session_ids = [session_id]
         session_doc = None
-        if db_conn:
+        if db_conn is not None:
             try:
                 if session_id.isdigit():
                     session_doc = await db_conn.sessions.find_one({"zoomMeetingId": int(session_id)})
