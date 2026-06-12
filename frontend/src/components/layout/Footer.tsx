@@ -371,7 +371,7 @@ export const Footer = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-3">
             <p className="text-sm text-blue-200/70">
               Copyright © {currentYear} - ClassPulse - All Rights Reserved. Concept, Design & Development By{' '}
-              <span className="text-white font-medium">TechSnatchers</span>.
+              <span className="text-white font-medium">Abiraj Vithusan Shoumiya</span>.
             </p>
             <div className="flex gap-4">
               <button onClick={() => setPrivacyOpen(true)} className="text-sm text-blue-200/70 hover:text-white transition-colors">Privacy Policy</button>
