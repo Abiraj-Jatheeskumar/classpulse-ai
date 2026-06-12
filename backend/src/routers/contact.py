@@ -7,7 +7,7 @@ from src.database.connection import get_database
 
 router = APIRouter(prefix="/api/contact", tags=["Contact"])
 
-CONTACT_RECIPIENT = "techsnatchers@gmail.com"
+CONTACT_RECIPIENT = "abiraj30@gmail.com"
 
 
 class ContactRequest(BaseModel):
@@ -62,7 +62,7 @@ async def send_contact_message(payload: ContactRequest):
           </table>
         </td></tr>
         <tr><td style="padding:24px 20px;" align="center">
-          <p style="margin:0;font-size:12px;color:#d1d5db;">&copy; {year} ClassPulse by TechSnatchers. All rights reserved.</p>
+          <p style="margin:0;font-size:12px;color:#d1d5db;">&copy; {year} ClassPulse by Abiraj Vithusan Shoumiya. All rights reserved.</p>
         </td></tr>
       </table>
     </td></tr>
