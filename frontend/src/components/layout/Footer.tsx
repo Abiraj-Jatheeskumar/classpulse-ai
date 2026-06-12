@@ -284,7 +284,7 @@ export const Footer = () => {
             {/* Phone */}
             <div className="flex flex-col items-center gap-2">
               <PhoneIcon className="h-6 w-6" />
-              <span className="font-semibold">076 921 300</span>
+              <span className="font-semibold">0776921300</span>
             </div>
             {/* Address */}
             <div className="flex flex-col items-center gap-2 border-x-0 md:border-x border-white/30">
