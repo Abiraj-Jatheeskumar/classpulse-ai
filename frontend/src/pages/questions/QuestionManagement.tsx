@@ -3,10 +3,11 @@ import { QuestionBank, Question } from '../../components/questions/QuestionBank'
 import { QuestionForm } from '../../components/questions/QuestionForm';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { BookOpenIcon, TargetIcon, Users, Target, X, VideoIcon, CalendarIcon } from 'lucide-react';
+import { BookOpenIcon, TargetIcon, Users, Target, X, VideoIcon, CalendarIcon, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext';
 import { questionService, CreateQuestionData } from '../../services/questionService';
+import { GenerateFromMaterial } from '../../components/questions/GenerateFromMaterial';
 import { sessionService, Session } from '../../services/sessionService';
 import { courseService, Course } from '../../services/courseService';
 
@@ -28,6 +29,9 @@ export const QuestionManagement = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   
+  // AI generate-from-material dialog
+  const [showGenerate, setShowGenerate] = useState(false);
+
   // Modal state for question type selection
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [selectedQuestionType, setSelectedQuestionType] = useState<'generic' | 'cluster'>('generic');
@@ -221,10 +225,21 @@ export const QuestionManagement = () => {
   return (
     <div className="py-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Question Bank Management</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Create, organize, and manage questions for your meetings
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Question Bank Management</h1>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Create, organize, and manage questions for your meetings
+            </p>
+          </div>
+          {isInstructor && (
+            <Button variant="primary" onClick={() => setShowGenerate(true)}>
+              <span className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4" /> Auto-Generate from Materials
+              </span>
+            </Button>
+          )}
+        </div>
         {isInstructor && (
           <div className="mt-4 flex flex-wrap items-center gap-4">
             {/* Meeting Type Selection */}
@@ -460,6 +475,16 @@ export const QuestionManagement = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* AI Generate-from-Material dialog */}
+      {showGenerate && (
+        <GenerateFromMaterial
+          courseId={selectedCourseId || undefined}
+          sessionId={selectedSessionId || undefined}
+          onClose={() => setShowGenerate(false)}
+          onSaved={loadQuestions}
+        />
       )}
 
       {/* Question Form or Question Bank */}

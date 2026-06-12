@@ -140,6 +140,7 @@ from src.routers import (
     session_report,  # 📊 Session reports with download
     preprocessing,  # 📊 Preprocessing engagement data
     feedback,  # 🎯 Personalized student feedback (Model-2)
+    material_questions,  # 🤖 AI question generation from lecture materials
 )
 
 app.include_router(auth.router)
@@ -158,6 +159,7 @@ app.include_router(session_report.router)  # 📊 Session reports with download
 app.include_router(session_report.reports_router)  # 📊 All reports API
 app.include_router(preprocessing.router)  # 📊 Preprocessing engagement data
 app.include_router(feedback.router)  # 🎯 Personalized student feedback (Model-2)
+app.include_router(material_questions.router)  # 🤖 AI question generation from materials
 
 from src.routers import profile, contact
 app.include_router(profile.router)
@@ -497,9 +499,12 @@ async def trigger_quiz_to_session(session_id: str, request: Request):
             name = data["info"].get("studentName", student_id[:12])
 
             if student_cluster:
+                # Match on targetCluster (preferred) OR legacy category field,
+                # so both AI-generated and manually-created cluster questions
+                # reach the right students.
                 student_cluster_qs = [
                     q for q in cluster_qs_all
-                    if q.get("category", "").lower() == student_cluster
+                    if (q.get("targetCluster") or q.get("category", "")).lower() == student_cluster
                 ]
             else:
                 student_cluster_qs = []
