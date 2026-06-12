@@ -8,6 +8,13 @@ A full-stack learning platform with **Zoom integration**, **real-time quiz deliv
 
 - [Project Overview](#project-overview)
 - [Tech Stack](#tech-stack)
+  - [Languages used (by area)](#languages-used-by-area)
+  - [Frontend technology stack](#frontend-technology-stack)
+  - [Backend primary stack (Python)](#backend-primary-stack-python)
+  - [Real-time communication](#real-time-communication)
+  - [External services and authentication](#external-services-and-authentication)
+  - [Cloud and deployment](#cloud-and-deployment)
+  - [Quick reference (single table)](#quick-reference-single-table)
 - [Project Structure](#project-structure)
 - [Frontend](#frontend)
   - [Entry Points & Configuration](#entry-points--configuration)
@@ -78,15 +85,112 @@ Students can:
 
 ## Tech Stack
 
+This section lists **languages**, **runtimes**, **frameworks**, and **major libraries** used in the repository. The **default production-style API** is the **Python FastAPI** app; other pieces are noted where they are optional or legacy.
+
+### Languages used (by area)
+
+| Area | Language(s) | Typical file types |
+|------|----------------|-------------------|
+| **Web frontend** | **TypeScript** | `.ts`, `.tsx` |
+| **Main REST + WebSocket API** | **Python** | `.py` under `backend/src/` |
+| **Deployment & tooling (repo root)** | **Python**, **Bash**, **Batch** | `.py`, `.sh`, `.bat` |
+| **AWS automation** | **Python**, **YAML/JSON** (templates) | under `aws/` |
+| **Alternate / unused-by-default API** | **TypeScript** (Node-style) | `backend/src/server.ts`, `*.routes.ts`, `*.controller.ts` — **there is no `package.json` in `backend/`**, so this stack is **not wired as the default server** unless you add Node tooling yourself |
+
+---
+
+### Frontend technology stack
+
+| Category | Technology | Versions / notes (from `package.json`) |
+|----------|------------|----------------------------------------|
+| **Language** | TypeScript | ^5.5 |
+| **UI library** | React | ^18.3 |
+| **DOM** | react-dom | ^18.3 |
+| **Bundler / dev server** | Vite | ^7.1 |
+| **React plugin** | @vitejs/plugin-react | ^4.2 |
+| **Routing** | react-router-dom | ^6.30 |
+| **Styling** | Tailwind CSS, PostCSS, Autoprefixer | Tailwind 3.4.x |
+| **HTTP** | axios | ^1.13 |
+| **Charts** | recharts | ^3.7 |
+| **Toasts** | sonner | ^2.0 |
+| **Icons** | lucide-react | 0.522.0 |
+| **Client-side PDF** | html2pdf.js | ^0.14 |
+| **Env in tooling** | dotenv | ^17.3 |
+| **Real-time (optional paths)** | socket.io-client | ^4.7 — some hooks can target a Socket.IO server if configured |
+| **Linting** | ESLint + TypeScript ESLint | ESLint ^9, `@typescript-eslint/*` ^8 |
+| **E2E tests** | Playwright | `@playwright/test` in devDependencies; tests under `frontend/tests/` |
+
+---
+
+### Backend primary stack (Python)
+
+| Category | Technology | Notes |
+|----------|------------|--------|
+| **Language** | Python 3 | Prerequisite: 3.9+ (see Getting Started) |
+| **Web framework** | FastAPI | `backend/src/main.py` — `FastAPI` app, routers, middleware |
+| **ASGI server** | Uvicorn | `uvicorn[standard]` — run: `python -m uvicorn src.main:app --reload --port 8000` from `backend/` |
+| **Schemas / validation** | Pydantic v2 | Request/response models |
+| **Primary database** | MongoDB | Async access via **Motor**; **PyMongo** |
+| **Optional backup DB** | MySQL | **aiomysql**; schema in `mysql_schema.sql` |
+| **Auth** | JWT | **PyJWT** |
+| **HTTP clients** | httpx, requests | External APIs, webhooks |
+| **Email** | Resend | `resend` package |
+| **Web Push** | pywebpush, cryptography | VAPID / push payloads |
+| **File uploads / forms** | python-multipart | Multipart form data |
+| **Configuration** | python-dotenv | `.env` loading |
+| **SSL certs** | certifi | TLS bundle |
+| **Email field validation** | email-validator | |
+| **ML / clustering** | pandas, numpy, scikit-learn, joblib | KMeans, preprocessing (see `backend/src/ml_models/`, services) |
+| **Load testing (optional)** | Locust | `backend/locustfile.py` |
+
+Dependencies are pinned or ranged in **`backend/requirements.txt`**.
+
+---
+
+### Real-time communication
+
+| Mechanism | Role in this project |
+|-----------|----------------------|
+| **FastAPI WebSockets** | **Primary** — session quiz delivery, global student channel, latency monitoring (see [WebSocket Endpoints](#websocket-endpoints)) |
+| **Socket.IO (client on frontend)** | Available as a dependency; may be used by certain hooks if a Socket.IO backend is deployed — **the main documented API uses native WebSockets on FastAPI** |
+
+---
+
+### External services and authentication
+
+| Concern | Technology |
+|---------|------------|
+| **Meetings** | Zoom API, Zoom webhooks (`backend/src/routers/zoom_webhook.py`, related services) |
+| **Transactional email** | Resend |
+| **Browser push** | Web Push (VAPID); helper script `generate_vapid_keys.py` at repo root |
+| **API authentication** | JWT (backend middleware + utilities under `backend/src/middleware/`, `utils/`) |
+| **Account flows** | Email verification / activation (frontend + backend routes) |
+
+---
+
+### Cloud and deployment
+
+| Item | Technology / location |
+|------|------------------------|
+| **Templates** | AWS CloudFormation under `aws/cloudformation/` |
+| **Serverless** | AWS Lambda handlers under `aws/lambda/` |
+| **VM deploy** | Bash scripts: `deploy-to-ec2.sh`, `ec2-setup.sh`, `monitor-app.sh`, `update-app.sh` |
+
+---
+
+### Quick reference (single table)
+
 | Layer | Technology |
-|-------|-----------|
-| **Frontend** | React 18, TypeScript, Vite, TailwindCSS |
-| **Backend** | FastAPI (Python), Express.js (TypeScript - alternative) |
-| **Database** | MongoDB (primary), MySQL (backup/sync) |
-| **Real-time** | FastAPI WebSockets, Socket.IO |
-| **External** | Zoom API (OAuth2), Resend (email), Web Push |
-| **Cloud** | AWS Lambda, API Gateway, CloudFormation, EC2 |
-| **Auth** | JWT tokens, email verification |
+|-------|------------|
+| **Languages** | TypeScript (frontend), Python (main backend), Bash/Batch (ops), YAML/JSON (AWS templates) |
+| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS, React Router, Axios, Recharts, Sonner, Lucide, Playwright (tests) |
+| **Backend (default)** | FastAPI, Uvicorn, Pydantic, Motor/PyMongo, optional aiomysql/MySQL |
+| **ML** | scikit-learn, pandas, numpy, joblib |
+| **Database** | MongoDB (primary), MySQL (optional backup/sync) |
+| **Real-time** | FastAPI WebSockets (primary); Socket.IO client on frontend where applicable |
+| **External** | Zoom, Resend, Web Push |
+| **Cloud** | AWS (Lambda, API Gateway, CloudFormation), EC2 + Nginx (scripts) |
+| **Auth** | JWT, email verification |
 
 ---
 
@@ -459,7 +563,7 @@ project_fyp-main/
 |------|-------------|
 | `src/main.py` | **FastAPI Entry Point** - Registers all API routers, WebSocket endpoints, CORS middleware, auth middleware. Initializes MongoDB and MySQL connections on startup. Closes connections on shutdown. Defines WebSocket handlers for session and global connections. Health check endpoint. |
 | `src/server.ts` | **Express Entry Point** (Alternative) - TypeScript/Express server for quiz and clustering routes. Mock implementation for development. |
-| `requirements.txt` | Python dependencies: FastAPI, Uvicorn, Motor (async MongoDB), PyMySQL, aiomysql, PyJWT, python-dotenv, Resend, pywebpush, py-vapid, requests, python-multipart, email-validator, passlib, bcrypt. |
+| `requirements.txt` | Python dependencies: FastAPI, Uvicorn, Pydantic, Motor, PyMongo, aiomysql, PyJWT, python-dotenv, Resend, pywebpush, cryptography, requests, httpx, python-multipart, email-validator, certifi, pandas, numpy, scikit-learn, joblib. |
 | `env_template.txt` | Environment variable template with placeholders for MongoDB URI, Zoom API credentials, email config, JWT secret, MySQL config, VAPID keys. |
 | `mysql_schema.sql` | MySQL backup table schema for `session_reports` table (stores report data synced from MongoDB). |
 
