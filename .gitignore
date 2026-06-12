@@ -30,6 +30,9 @@ ENV/
 .env.production
 *.env
 
+# Private credentials backup (never commit)
+CREDENTIALS_BACKUP.txt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
